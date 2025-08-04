@@ -55,6 +55,11 @@
      - Location, degree, experience, and specialties dropdowns
      - Multi-select specialties with active indicators
      - Clean interface with optional advanced features
+   - **Expandable specialties functionality** ✅ (Implemented in PR #7)
+     - Interactive expand/collapse for advocate specialties
+     - Individual expansion per advocate
+     - Clean interface with "+X more" and "Show less" buttons
+     - Better information access for users
 
 3. **API Improvements**
    - Add caching with Redis
