@@ -1,12 +1,95 @@
 import db from "../../../db";
 import { advocates } from "../../../db/schema";
 import { advocateData } from "../../../db/seed/advocates";
+import { eq, ilike, or } from "drizzle-orm";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const searchTerm = searchParams.get('search') || '';
+  const city = searchParams.get('city')?.split(',').filter(s => s) || [];
+  const degree = searchParams.get('degree')?.split(',').filter(s => s) || [];
+  const experienceMin = parseInt(searchParams.get('experienceMin') || '0');
+  const experienceMax = parseInt(searchParams.get('experienceMax') || '999');
+  const specialties = searchParams.get('specialties')?.split(',').filter(s => s) || [];
+  const page = parseInt(searchParams.get('page') || '1');
+  const pageSize = parseInt(searchParams.get('pageSize') || '20');
+  const limitCount = Math.min(pageSize, 100); // Cap at 100 items per page
+  const offsetCount = (page - 1) * limitCount;
+
   // Uncomment this line to use a database
   // const data = await db.select().from(advocates);
 
   const data = advocateData;
 
-  return Response.json({ data });
+  // Filter data based on all criteria
+  let filteredData = data;
+
+  // Text search filter
+  if (searchTerm) {
+    const searchLower = searchTerm.toLowerCase();
+    const searchKeywords = searchLower.split(' ').filter(keyword => keyword.length > 0);
+
+    filteredData = filteredData.filter((advocate) => {
+      // Create a searchable text from all fields
+      const searchableText = `${advocate.firstName} ${advocate.lastName} ${advocate.city} ${advocate.degree} ${advocate.yearsOfExperience} ${advocate.specialties.join(' ')}`.toLowerCase();
+
+      // If multiple keywords, check if ALL keywords are found
+      if (searchKeywords.length > 1) {
+        return searchKeywords.every(keyword => searchableText.includes(keyword));
+      }
+
+      // Single keyword search - check all fields
+      return (
+        advocate.firstName.toLowerCase().includes(searchLower) ||
+        advocate.lastName.toLowerCase().includes(searchLower) ||
+        advocate.city.toLowerCase().includes(searchLower) ||
+        advocate.degree.toLowerCase().includes(searchLower) ||
+        advocate.specialties.some((specialty: string) =>
+          specialty.toLowerCase().includes(searchLower)
+        ) ||
+        advocate.yearsOfExperience.toString().includes(searchTerm)
+      );
+    });
+  }
+
+  // City filter
+  if (city.length > 0) {
+    filteredData = filteredData.filter(advocate => city.includes(advocate.city));
+  }
+
+  // Degree filter
+  if (degree.length > 0) {
+    filteredData = filteredData.filter(advocate => degree.includes(advocate.degree));
+  }
+
+  // Experience range filter
+  if (experienceMin > 0 || experienceMax < 999) {
+    filteredData = filteredData.filter(advocate =>
+      advocate.yearsOfExperience >= experienceMin && advocate.yearsOfExperience <= experienceMax
+    );
+  }
+
+  // Specialties filter
+  if (specialties.length > 0) {
+    filteredData = filteredData.filter(advocate =>
+      specialties.some(specialty => advocate.specialties.includes(specialty))
+    );
+  }
+
+  // Apply pagination
+  const totalCount = filteredData.length;
+  const totalPages = Math.ceil(totalCount / limitCount);
+  const paginatedData = filteredData.slice(offsetCount, offsetCount + limitCount);
+
+  return Response.json({
+    data: paginatedData,
+    pagination: {
+      page,
+      pageSize: limitCount,
+      totalCount,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  });
 }
