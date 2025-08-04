@@ -55,11 +55,15 @@
      - Location, degree, experience, and specialties dropdowns
      - Multi-select specialties with active indicators
      - Clean interface with optional advanced features
-   - **Expandable specialties functionality** ✅ (Implemented in PR #7)
+   - **Expandable specialties functionality** ✅ (Implemented in PR #8)
      - Interactive expand/collapse for advocate specialties
      - Individual expansion per advocate
      - Clean interface with "+X more" and "Show less" buttons
      - Better information access for users
+   - **UI Polish - Centered Dropdown Arrows** ✅ (Updated in PR #6)
+     - Perfectly centered dropdown arrows for professional appearance
+     - Consistent visual alignment across all filter dropdowns
+     - Better user experience with proper visual hierarchy
 
 3. **API Improvements**
    - Add caching with Redis
