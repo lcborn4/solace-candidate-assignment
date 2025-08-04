@@ -150,7 +150,9 @@ With the current implementation:
 - **Bundle size**: Optimized with tree shaking
 - **Accessibility**: WCAG 2.1 AA compliant
 
-## 🎯 **Future Roadmap**
+## 🎯 **Potential Future Roadmap**
+
+If this were to be developed into a production application, here's a suggested roadmap:
 
 1. **Phase 1**: Database integration and advanced search
 2. **Phase 2**: User accounts and personalization
