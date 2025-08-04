@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         advocate.lastName.toLowerCase().includes(searchLower) ||
         advocate.city.toLowerCase().includes(searchLower) ||
         advocate.degree.toLowerCase().includes(searchLower) ||
-        advocate.specialties.some((specialty: string) => 
+        advocate.specialties.some((specialty: string) =>
           specialty.toLowerCase().includes(searchLower)
         ) ||
         advocate.yearsOfExperience.toString().includes(searchTerm)
