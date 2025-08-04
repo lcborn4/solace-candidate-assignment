@@ -34,6 +34,21 @@ export default function Home() {
   // Dropdown state
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Handle click outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const fetchFilterOptions = useCallback(async () => {
     try {
       const response = await fetch('/api/filters');
@@ -51,8 +66,10 @@ export default function Home() {
       if (currentFilters.search) params.append('search', currentFilters.search);
       if (currentFilters.city.length > 0) params.append('city', currentFilters.city.join(','));
       if (currentFilters.degree.length > 0) params.append('degree', currentFilters.degree.join(','));
-      if (currentFilters.experienceMin > 0) params.append('experienceMin', currentFilters.experienceMin.toString());
-      if (currentFilters.experienceMax < 999) params.append('experienceMax', currentFilters.experienceMax.toString());
+      if (currentFilters.experienceRanges.length > 0) {
+        params.append('experienceMin', currentFilters.experienceMin.toString());
+        params.append('experienceMax', currentFilters.experienceMax.toString());
+      }
       if (currentFilters.specialties.length > 0) params.append('specialties', currentFilters.specialties.join(','));
       params.append('page', page.toString());
       params.append('pageSize', '20');
@@ -137,7 +154,7 @@ export default function Home() {
       : value || placeholder;
 
     return (
-      <div className="relative">
+      <div className="relative dropdown-container">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
         </label>
