@@ -1,19 +1,35 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { Advocate, AdvocatesResponse } from "../types/advocate";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
+  const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
 
-  const fetchAdvocates = useCallback(async (search = "") => {
+  const fetchAdvocates = useCallback(async (search = "", page = 1) => {
     setLoading(true);
     try {
-      const url = search ? `/api/advocates?search=${encodeURIComponent(search)}` : "/api/advocates";
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      params.append('page', page.toString());
+      params.append('pageSize', '20');
+      
+      const url = `/api/advocates?${params.toString()}`;
       const response = await fetch(url);
-      const jsonResponse = await response.json();
+      const jsonResponse: AdvocatesResponse = await response.json();
+      
       setAdvocates(jsonResponse.data);
+      setPagination(jsonResponse.pagination);
     } catch (error) {
       console.error("Error fetching advocates:", error);
     } finally {
@@ -28,7 +44,7 @@ export default function Home() {
   // Debounced search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      fetchAdvocates(searchTerm);
+      fetchAdvocates(searchTerm, 1);
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -42,6 +58,9 @@ export default function Home() {
     setSearchTerm("");
   };
 
+  const handlePageChange = (newPage: number) => {
+    fetchAdvocates(searchTerm, newPage);
+  };
   const formatPhoneNumber = (phoneNumber: number) => {
     const phoneStr = phoneNumber.toString();
     return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
@@ -115,6 +134,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
+<<<<<<< HEAD
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -198,13 +218,150 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
+=======
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Location
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Degree
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Specialties
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Experience
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {advocates.map((advocate, index) => (
+                      <tr key={advocate.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span className="text-sm font-medium text-blue-800">
+                                  {advocate.firstName[0]}{advocate.lastName[0]}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {advocate.firstName} {advocate.lastName}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{advocate.city}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {advocate.degree}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-1">
+                            {advocate.specialties.slice(0, 3).map((specialty, specialtyIndex) => (
+                              <span
+                                key={specialtyIndex}
+                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                {specialty}
+                              </span>
+                            ))}
+                            {advocate.specialties.length > 3 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                +{advocate.specialties.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {advocate.yearsOfExperience} year{advocate.yearsOfExperience !== 1 ? 's' : ''}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {formatPhoneNumber(advocate.phoneNumber)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={!pagination.hasPrevPage}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Showing <span className="font-medium">{((pagination.page - 1) * pagination.pageSize) + 1}</span> to{' '}
+                        <span className="font-medium">
+                          {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)}
+                        </span>{' '}
+                        of <span className="font-medium">{pagination.totalCount}</span> results
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                          disabled={!pagination.hasPrevPage}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                          disabled={!pagination.hasNextPage}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Results Count */}
         {!loading && advocates.length > 0 && (
           <div className="mt-4 text-center text-sm text-gray-600">
-            Showing {advocates.length} advocate{advocates.length !== 1 ? 's' : ''}
+            Showing {advocates.length} of {pagination.totalCount} advocate{pagination.totalCount !== 1 ? 's' : ''}
             {searchTerm && ` matching "${searchTerm}"`}
           </div>
         )}
