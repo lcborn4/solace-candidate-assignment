@@ -15,10 +15,11 @@ export default function Home() {
   });
   const [filters, setFilters] = useState<FilterState>({
     search: "",
-    city: "",
-    degree: "",
+    city: [],
+    degree: [],
     experienceMin: 0,
     experienceMax: 999,
+    experienceRanges: [],
     specialties: []
   });
   const [pagination, setPagination] = useState({
@@ -29,6 +30,9 @@ export default function Home() {
     hasNextPage: false,
     hasPrevPage: false
   });
+
+  // Dropdown state
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const fetchFilterOptions = useCallback(async () => {
     try {
@@ -45,8 +49,8 @@ export default function Home() {
     try {
       const params = new URLSearchParams();
       if (currentFilters.search) params.append('search', currentFilters.search);
-      if (currentFilters.city) params.append('city', currentFilters.city);
-      if (currentFilters.degree) params.append('degree', currentFilters.degree);
+      if (currentFilters.city.length > 0) params.append('city', currentFilters.city.join(','));
+      if (currentFilters.degree.length > 0) params.append('degree', currentFilters.degree.join(','));
       if (currentFilters.experienceMin > 0) params.append('experienceMin', currentFilters.experienceMin.toString());
       if (currentFilters.experienceMax < 999) params.append('experienceMax', currentFilters.experienceMax.toString());
       if (currentFilters.specialties.length > 0) params.append('specialties', currentFilters.specialties.join(','));
@@ -91,10 +95,11 @@ export default function Home() {
   const handleReset = () => {
     setFilters({
       search: "",
-      city: "",
-      degree: "",
+      city: [],
+      degree: [],
       experienceMin: 0,
       experienceMax: 999,
+      experienceRanges: [],
       specialties: []
     });
   };
@@ -106,6 +111,108 @@ export default function Home() {
   const formatPhoneNumber = (phoneNumber: number) => {
     const phoneStr = phoneNumber.toString();
     return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
+  };
+
+  // Custom dropdown component
+  const CustomDropdown = ({ 
+    label, 
+    value, 
+    options, 
+    onChange, 
+    placeholder = "Select option",
+    multiple = false 
+  }: {
+    label: string;
+    value: string | string[];
+    options: string[];
+    onChange: (value: string | string[]) => void;
+    placeholder?: string;
+    multiple?: boolean;
+  }) => {
+    const isOpen = openDropdown === label;
+    const displayValue = multiple 
+      ? (value as string[]).length > 0 
+        ? `${(value as string[]).length} selected`
+        : placeholder
+      : value || placeholder;
+
+    return (
+      <div className="relative">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {label}
+        </label>
+        <button
+          type="button"
+          onClick={() => setOpenDropdown(isOpen ? null : label)}
+          className="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors duration-200"
+        >
+          <span className={`block truncate ${value && value !== '' ? 'text-gray-900' : 'text-gray-500'}`}>
+            {displayValue}
+          </span>
+          <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <svg
+              className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </button>
+        
+        {isOpen && (
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+            {multiple ? (
+              <div className="p-2">
+                {options.map((option) => (
+                  <label key={option} className="flex items-center px-3 py-2 hover:bg-gray-100 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(value as string[]).includes(option)}
+                      onChange={(e) => {
+                        const currentValue = value as string[];
+                        if (e.target.checked) {
+                          onChange([...currentValue, option]);
+                        } else {
+                          onChange(currentValue.filter(v => v !== option));
+                        }
+                      }}
+                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-900">{option}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    onChange('');
+                    setOpenDropdown(null);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-100"
+                >
+                  {placeholder}
+                </button>
+                {options.map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      onChange(option);
+                      setOpenDropdown(null);
+                    }}
+                    className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -166,24 +273,24 @@ export default function Home() {
           >
             <div className="flex items-center">
               <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
-              {(filters.city || filters.degree || filters.experienceMin > 0 || filters.experienceMax < 999 || filters.specialties.length > 0) && (
+              {(filters.city.length > 0 || filters.degree.length > 0 || filters.experienceRanges.length > 0 || filters.specialties.length > 0) && (
                 <div className="ml-2 flex items-center space-x-1">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Active
                   </span>
-                  {filters.city && (
+                  {filters.city.length > 0 && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {filters.city}
+                      {filters.city.length} location{filters.city.length !== 1 ? 's' : ''}
                     </span>
                   )}
-                  {filters.degree && (
+                  {filters.degree.length > 0 && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      {filters.degree}
+                      {filters.degree.length} degree{filters.degree.length !== 1 ? 's' : ''}
                     </span>
                   )}
-                  {(filters.experienceMin > 0 || filters.experienceMax < 999) && (
+                  {filters.experienceRanges.length > 0 && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                      {filters.experienceMin}-{filters.experienceMax === 999 ? '∞' : filters.experienceMax} years
+                      {filters.experienceRanges.length} experience range{filters.experienceRanges.length !== 1 ? 's' : ''}
                     </span>
                   )}
                   {filters.specialties.length > 0 && (
@@ -208,85 +315,61 @@ export default function Home() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* City Filter */}
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
-                  </label>
-                  <select
-                    id="city"
-                    value={filters.city}
-                    onChange={(e) => handleFilterChange('city', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">All Locations</option>
-                    {filterOptions.cities.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                </div>
+                <CustomDropdown
+                  label="Location"
+                  value={filters.city}
+                  options={filterOptions.cities}
+                  onChange={(value) => handleFilterChange('city', value)}
+                  placeholder="All Locations"
+                  multiple={true}
+                />
 
                 {/* Degree Filter */}
-                <div>
-                  <label htmlFor="degree" className="block text-sm font-medium text-gray-700 mb-2">
-                    Degree Type
-                  </label>
-                  <select
-                    id="degree"
-                    value={filters.degree}
-                    onChange={(e) => handleFilterChange('degree', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">All Degrees</option>
-                    {filterOptions.degrees.map((degree) => (
-                      <option key={degree} value={degree}>{degree}</option>
-                    ))}
-                  </select>
-                </div>
+                <CustomDropdown
+                  label="Degree Type"
+                  value={filters.degree}
+                  options={filterOptions.degrees}
+                  onChange={(value) => handleFilterChange('degree', value)}
+                  placeholder="All Degrees"
+                  multiple={true}
+                />
 
                 {/* Experience Range Filter */}
-                <div>
-                  <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
-                    Experience
-                  </label>
-                  <select
-                    id="experience"
-                    value={`${filters.experienceMin}-${filters.experienceMax}`}
-                    onChange={(e) => {
-                      const [min, max] = e.target.value.split('-').map(Number);
-                      handleFilterChange('experienceMin', min);
-                      handleFilterChange('experienceMax', max);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="0-999">All Experience Levels</option>
-                    {filterOptions.experienceRanges.map((range) => (
-                      <option key={range.label} value={`${range.min}-${range.max}`}>{range.label}</option>
-                    ))}
-                  </select>
-                </div>
+                <CustomDropdown
+                  label="Experience"
+                  value={filters.experienceRanges || []}
+                  options={filterOptions.experienceRanges.map(range => range.label)}
+                  onChange={(value) => {
+                    if (Array.isArray(value)) {
+                      // Update the experienceRanges array
+                      handleFilterChange('experienceRanges', value);
+                      
+                      // For multi-select, we need to find the min and max across all selected ranges
+                      const selectedRanges = filterOptions.experienceRanges.filter(r => value.includes(r.label));
+                      if (selectedRanges.length > 0) {
+                        const min = Math.min(...selectedRanges.map(r => r.min));
+                        const max = Math.max(...selectedRanges.map(r => r.max));
+                        handleFilterChange('experienceMin', min);
+                        handleFilterChange('experienceMax', max);
+                      } else {
+                        handleFilterChange('experienceMin', 0);
+                        handleFilterChange('experienceMax', 999);
+                      }
+                    }
+                  }}
+                  placeholder="All Experience Levels"
+                  multiple={true}
+                />
 
                 {/* Specialties Filter */}
-                <div>
-                  <label htmlFor="specialties" className="block text-sm font-medium text-gray-700 mb-2">
-                    Specialties
-                  </label>
-                  <select
-                    id="specialties"
-                    multiple
-                    value={filters.specialties}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions, option => option.value);
-                      handleFilterChange('specialties', selected);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    size={4}
-                  >
-                    {filterOptions.specialties.map((specialty) => (
-                      <option key={specialty} value={specialty}>{specialty}</option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
-                </div>
+                <CustomDropdown
+                  label="Specialties"
+                  value={filters.specialties}
+                  options={filterOptions.specialties}
+                  onChange={(value) => handleFilterChange('specialties', value)}
+                  placeholder="Select specialties"
+                  multiple={true}
+                />
               </div>
             </div>
           )}

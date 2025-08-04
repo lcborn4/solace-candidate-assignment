@@ -40,9 +40,10 @@ export interface FilterOptions {
 
 export interface FilterState {
     search: string;
-    city: string;
-    degree: string;
+    city: string[];
+    degree: string[];
     experienceMin: number;
     experienceMax: number;
+    experienceRanges: string[];
     specialties: string[];
 } 
