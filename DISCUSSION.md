@@ -45,6 +45,11 @@
    - Filter by experience range
    - Filter by specialties (multi-select)
    - Sort by relevance, experience, or name
+   - **Keyword search functionality** ✅ (Implemented in PR #5)
+     - Multi-word search support (e.g., "John Doe" finds John Doe)
+     - Database searchText field for optimized queries
+     - All keywords must match for multi-word searches
+     - Backward compatible with single keyword searches
 
 3. **API Improvements**
    - Add caching with Redis
