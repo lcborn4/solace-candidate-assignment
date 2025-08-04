@@ -64,8 +64,10 @@ export default function Home() {
         <p>
           Searching for: <span id="search-term"></span>
         </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
+        <div style={{ display: "flex", gap: "16px", alignItems: "end" }}>
+          <input style={{ border: "1px solid black", flex: "1" }} onChange={onChange} />
+          <button onClick={onClick}>Reset Search</button>
+        </div>
       </div>
       <br />
       <br />
