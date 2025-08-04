@@ -260,11 +260,11 @@ export default function Home() {
 
         {/* Search Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+            Search Advocates
+          </label>
+          <div className="flex gap-4 items-end">
             <div className="flex-1">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                Search Advocates
-              </label>
               <div className="relative">
                 <input
                   id="search"
