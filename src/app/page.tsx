@@ -1,91 +1,214 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
-    });
+  const fetchAdvocates = useCallback(async (search = "") => {
+    setLoading(true);
+    try {
+      const url = search ? `/api/advocates?search=${encodeURIComponent(search)}` : "/api/advocates";
+      const response = await fetch(url);
+      const jsonResponse = await response.json();
+      setAdvocates(jsonResponse.data);
+    } catch (error) {
+      console.error("Error fetching advocates:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const onChange = (e) => {
-    const searchTerm = e.target.value;
+  useEffect(() => {
+    fetchAdvocates();
+  }, [fetchAdvocates]);
 
-    document.getElementById("search-term").innerHTML = searchTerm;
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchAdvocates(searchTerm);
+    }, 300);
 
-    console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.includes(searchTerm)
-      );
-    });
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, fetchAdvocates]);
 
-    setFilteredAdvocates(filteredAdvocates);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
 
-  const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
+  const handleReset = () => {
+    setSearchTerm("");
+  };
+
+  const formatPhoneNumber = (phoneNumber: number) => {
+    const phoneStr = phoneNumber.toString();
+    return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
   };
 
   return (
-    <main style={{ margin: "24px" }}>
-      <h1>Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate) => {
-            return (
-              <tr>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Find Your Perfect Advocate
+          </h1>
+          <p className="text-lg text-gray-600">
+            Connect with experienced mental health professionals who can help you on your journey
+          </p>
+        </div>
+
+        {/* Search Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1">
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                Search Advocates
+              </label>
+              <div className="relative">
+                <input
+                  id="search"
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="Search by name, city, degree, or specialty..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleReset}
+              className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200"
+            >
+              Clear Search
+            </button>
+          </div>
+          {searchTerm && (
+            <p className="mt-2 text-sm text-gray-600">
+              Searching for: <span className="font-medium">{searchTerm}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Results Section */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-gray-600">Loading advocates...</span>
+            </div>
+          ) : advocates.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No advocates found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Try adjusting your search terms or clear the search to see all advocates.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Degree
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Specialties
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Experience
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {advocates.map((advocate, index) => (
+                    <tr key={advocate.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-800">
+                                {advocate.firstName[0]}{advocate.lastName[0]}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {advocate.firstName} {advocate.lastName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{advocate.city}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {advocate.degree}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {advocate.specialties.slice(0, 3).map((specialty, specialtyIndex) => (
+                            <span
+                              key={specialtyIndex}
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {specialty}
+                            </span>
+                          ))}
+                          {advocate.specialties.length > 3 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                              +{advocate.specialties.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {advocate.yearsOfExperience} year{advocate.yearsOfExperience !== 1 ? 's' : ''}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {formatPhoneNumber(advocate.phoneNumber)}
+                        </div>
+                      </td>
+                    </tr>
                   ))}
-                </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </main>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Results Count */}
+        {!loading && advocates.length > 0 && (
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Showing {advocates.length} advocate{advocates.length !== 1 ? 's' : ''}
+            {searchTerm && ` matching "${searchTerm}"`}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
