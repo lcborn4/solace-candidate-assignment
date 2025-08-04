@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [advocates, setAdvocates] = useState([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const [expandedSpecialties, setExpandedSpecialties] = useState(new Set());
 
   useEffect(() => {
     console.log("fetching advocates...");
@@ -41,6 +42,18 @@ export default function Home() {
     setFilteredAdvocates(advocates);
   };
 
+  const toggleSpecialties = (advocateId) => {
+    setExpandedSpecialties(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(advocateId)) {
+        newSet.delete(advocateId);
+      } else {
+        newSet.add(advocateId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <main style={{ margin: "24px" }}>
       <h1>Solace Advocates</h1>
@@ -67,17 +80,52 @@ export default function Home() {
           <th>Phone Number</th>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {filteredAdvocates.map((advocate, index) => {
+            const isExpanded = expandedSpecialties.has(advocate.id || index);
+            const displaySpecialties = isExpanded 
+              ? advocate.specialties 
+              : advocate.specialties.slice(0, 3);
+            
             return (
-              <tr>
+              <tr key={advocate.id || index}>
                 <td>{advocate.firstName}</td>
                 <td>{advocate.lastName}</td>
                 <td>{advocate.city}</td>
                 <td>{advocate.degree}</td>
                 <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
+                  {displaySpecialties.map((specialty, specialtyIndex) => (
+                    <div key={specialtyIndex}>{specialty}</div>
                   ))}
+                  {advocate.specialties.length > 3 && !isExpanded && (
+                    <button 
+                      onClick={() => toggleSpecialties(advocate.id || index)}
+                      style={{ 
+                        background: '#f3f4f6', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '4px',
+                        padding: '2px 8px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      +{advocate.specialties.length - 3} more
+                    </button>
+                  )}
+                  {isExpanded && (
+                    <button 
+                      onClick={() => toggleSpecialties(advocate.id || index)}
+                      style={{ 
+                        background: '#f3f4f6', 
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '4px',
+                        padding: '2px 8px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Show less
+                    </button>
+                  )}
                 </td>
                 <td>{advocate.yearsOfExperience}</td>
                 <td>{advocate.phoneNumber}</td>
