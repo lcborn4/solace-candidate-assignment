@@ -6,8 +6,8 @@ import { eq, ilike, or } from "drizzle-orm";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const searchTerm = searchParams.get('search') || '';
-  const city = searchParams.get('city') || '';
-  const degree = searchParams.get('degree') || '';
+  const city = searchParams.get('city')?.split(',').filter(s => s) || [];
+  const degree = searchParams.get('degree')?.split(',').filter(s => s) || [];
   const experienceMin = parseInt(searchParams.get('experienceMin') || '0');
   const experienceMax = parseInt(searchParams.get('experienceMax') || '999');
   const specialties = searchParams.get('specialties')?.split(',').filter(s => s) || [];
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
   // Filter data based on all criteria
   let filteredData = data;
-  
+
   // Text search filter
   if (searchTerm) {
     const searchLower = searchTerm.toLowerCase();
@@ -53,25 +53,25 @@ export async function GET(request: Request) {
   }
 
   // City filter
-  if (city) {
-    filteredData = filteredData.filter(advocate => advocate.city === city);
+  if (city.length > 0) {
+    filteredData = filteredData.filter(advocate => city.includes(advocate.city));
   }
 
   // Degree filter
-  if (degree) {
-    filteredData = filteredData.filter(advocate => advocate.degree === degree);
+  if (degree.length > 0) {
+    filteredData = filteredData.filter(advocate => degree.includes(advocate.degree));
   }
 
   // Experience range filter
   if (experienceMin > 0 || experienceMax < 999) {
-    filteredData = filteredData.filter(advocate => 
+    filteredData = filteredData.filter(advocate =>
       advocate.yearsOfExperience >= experienceMin && advocate.yearsOfExperience <= experienceMax
     );
   }
 
   // Specialties filter
   if (specialties.length > 0) {
-    filteredData = filteredData.filter(advocate => 
+    filteredData = filteredData.filter(advocate =>
       specialties.some(specialty => advocate.specialties.includes(specialty))
     );
   }
