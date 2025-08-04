@@ -1,7 +1,7 @@
 import db from "../../../db";
 import { advocates } from "../../../db/schema";
 import { advocateData } from "../../../db/seed/advocates";
-import { eq, ilike, or, limit, offset } from "drizzle-orm";
+import { eq, ilike, or } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         advocate.lastName.toLowerCase().includes(searchLower) ||
         advocate.city.toLowerCase().includes(searchLower) ||
         advocate.degree.toLowerCase().includes(searchLower) ||
-        advocate.specialties.some((specialty: string) => 
+        advocate.specialties.some((specialty: string) =>
           specialty.toLowerCase().includes(searchLower)
         ) ||
         advocate.yearsOfExperience.toString().includes(searchTerm)
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   const totalPages = Math.ceil(totalCount / limitCount);
   const paginatedData = filteredData.slice(offsetCount, offsetCount + limitCount);
 
-  return Response.json({ 
+  return Response.json({
     data: paginatedData,
     pagination: {
       page,
