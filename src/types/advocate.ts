@@ -23,4 +23,26 @@ export interface PaginationInfo {
 export interface AdvocatesResponse {
     data: Advocate[];
     pagination: PaginationInfo;
+}
+
+export interface ExperienceRange {
+    label: string;
+    min: number;
+    max: number;
+}
+
+export interface FilterOptions {
+    cities: string[];
+    degrees: string[];
+    experienceRanges: ExperienceRange[];
+    specialties: string[];
+}
+
+export interface FilterState {
+    search: string;
+    city: string;
+    degree: string;
+    experienceMin: number;
+    experienceMax: number;
+    specialties: string[];
 } 

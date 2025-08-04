@@ -1,12 +1,26 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Advocate, AdvocatesResponse } from "../types/advocate";
+import { Advocate, AdvocatesResponse, FilterOptions, FilterState } from "../types/advocate";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    cities: [],
+    degrees: [],
+    experienceRanges: [],
+    specialties: []
+  });
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    city: "",
+    degree: "",
+    experienceMin: 0,
+    experienceMax: 999,
+    specialties: []
+  });
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 20,
@@ -16,11 +30,26 @@ export default function Home() {
     hasPrevPage: false
   });
 
-  const fetchAdvocates = useCallback(async (search = "", page = 1) => {
+  const fetchFilterOptions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/filters');
+      const options: FilterOptions = await response.json();
+      setFilterOptions(options);
+    } catch (error) {
+      console.error("Error fetching filter options:", error);
+    }
+  }, []);
+
+  const fetchAdvocates = useCallback(async (currentFilters = filters, page = 1) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (currentFilters.search) params.append('search', currentFilters.search);
+      if (currentFilters.city) params.append('city', currentFilters.city);
+      if (currentFilters.degree) params.append('degree', currentFilters.degree);
+      if (currentFilters.experienceMin > 0) params.append('experienceMin', currentFilters.experienceMin.toString());
+      if (currentFilters.experienceMax < 999) params.append('experienceMax', currentFilters.experienceMax.toString());
+      if (currentFilters.specialties.length > 0) params.append('specialties', currentFilters.specialties.join(','));
       params.append('page', page.toString());
       params.append('pageSize', '20');
       
@@ -35,32 +64,45 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
+    fetchFilterOptions();
     fetchAdvocates();
-  }, [fetchAdvocates]);
+  }, [fetchFilterOptions, fetchAdvocates]);
 
   // Debounced search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      fetchAdvocates(searchTerm, 1);
+      fetchAdvocates(filters, 1);
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, fetchAdvocates]);
+  }, [filters, fetchAdvocates]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setFilters(prev => ({ ...prev, search: e.target.value }));
+  };
+
+  const handleFilterChange = (key: keyof FilterState, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleReset = () => {
-    setSearchTerm("");
+    setFilters({
+      search: "",
+      city: "",
+      degree: "",
+      experienceMin: 0,
+      experienceMax: 999,
+      specialties: []
+    });
   };
 
   const handlePageChange = (newPage: number) => {
-    fetchAdvocates(searchTerm, newPage);
+    fetchAdvocates(filters, newPage);
   };
+
   const formatPhoneNumber = (phoneNumber: number) => {
     const phoneStr = phoneNumber.toString();
     return `(${phoneStr.slice(0, 3)}) ${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
@@ -80,7 +122,7 @@ export default function Home() {
         </div>
 
         {/* Search Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-1">
               <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
@@ -90,7 +132,7 @@ export default function Home() {
                 <input
                   id="search"
                   type="text"
-                  value={searchTerm}
+                  value={filters.search}
                   onChange={handleSearchChange}
                   placeholder="Search by name, city, degree, or specialty..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -106,13 +148,123 @@ export default function Home() {
               onClick={handleReset}
               className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200"
             >
-              Clear Search
+              Clear All
             </button>
           </div>
-          {searchTerm && (
+          {filters.search && (
             <p className="mt-2 text-sm text-gray-600">
-              Searching for: <span className="font-medium">{searchTerm}</span>
+              Searching for: <span className="font-medium">{filters.search}</span>
             </p>
+          )}
+        </div>
+
+        {/* Advanced Filters Toggle */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div className="flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+              <span className="ml-2 text-sm text-gray-500">
+                {filters.city || filters.degree || filters.experienceMin > 0 || filters.experienceMax < 999 || filters.specialties.length > 0 ? '(Active)' : ''}
+              </span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${showAdvancedFilters ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {showAdvancedFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* City Filter */}
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    Location
+                  </label>
+                  <select
+                    id="city"
+                    value={filters.city}
+                    onChange={(e) => handleFilterChange('city', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">All Locations</option>
+                    {filterOptions.cities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Degree Filter */}
+                <div>
+                  <label htmlFor="degree" className="block text-sm font-medium text-gray-700 mb-2">
+                    Degree Type
+                  </label>
+                  <select
+                    id="degree"
+                    value={filters.degree}
+                    onChange={(e) => handleFilterChange('degree', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">All Degrees</option>
+                    {filterOptions.degrees.map((degree) => (
+                      <option key={degree} value={degree}>{degree}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Experience Range Filter */}
+                <div>
+                  <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
+                    Experience
+                  </label>
+                  <select
+                    id="experience"
+                    value={`${filters.experienceMin}-${filters.experienceMax}`}
+                    onChange={(e) => {
+                      const [min, max] = e.target.value.split('-').map(Number);
+                      handleFilterChange('experienceMin', min);
+                      handleFilterChange('experienceMax', max);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="0-999">All Experience Levels</option>
+                    {filterOptions.experienceRanges.map((range) => (
+                      <option key={range.label} value={`${range.min}-${range.max}`}>{range.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Specialties Filter */}
+                <div>
+                  <label htmlFor="specialties" className="block text-sm font-medium text-gray-700 mb-2">
+                    Specialties
+                  </label>
+                  <select
+                    id="specialties"
+                    multiple
+                    value={filters.specialties}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions, option => option.value);
+                      handleFilterChange('specialties', selected);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    size={4}
+                  >
+                    {filterOptions.specialties.map((specialty) => (
+                      <option key={specialty} value={specialty}>{specialty}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -277,7 +429,7 @@ export default function Home() {
         {!loading && advocates.length > 0 && (
           <div className="mt-4 text-center text-sm text-gray-600">
             Showing {advocates.length} of {pagination.totalCount} advocate{pagination.totalCount !== 1 ? 's' : ''}
-            {searchTerm && ` matching "${searchTerm}"`}
+            {filters.search && ` matching "${filters.search}"`}
           </div>
         )}
       </div>

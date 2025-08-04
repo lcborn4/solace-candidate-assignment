@@ -6,6 +6,11 @@ import { eq, ilike, or } from "drizzle-orm";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const searchTerm = searchParams.get('search') || '';
+  const city = searchParams.get('city') || '';
+  const degree = searchParams.get('degree') || '';
+  const experienceMin = parseInt(searchParams.get('experienceMin') || '0');
+  const experienceMax = parseInt(searchParams.get('experienceMax') || '999');
+  const specialties = searchParams.get('specialties')?.split(',').filter(s => s) || [];
   const page = parseInt(searchParams.get('page') || '1');
   const pageSize = parseInt(searchParams.get('pageSize') || '20');
   const limitCount = Math.min(pageSize, 100); // Cap at 100 items per page
@@ -16,13 +21,15 @@ export async function GET(request: Request) {
 
   const data = advocateData;
 
-  // Filter data based on search term
+  // Filter data based on all criteria
   let filteredData = data;
+  
+  // Text search filter
   if (searchTerm) {
     const searchLower = searchTerm.toLowerCase();
     const searchKeywords = searchLower.split(' ').filter(keyword => keyword.length > 0);
 
-    filteredData = data.filter((advocate) => {
+    filteredData = filteredData.filter((advocate) => {
       // Create a searchable text from all fields
       const searchableText = `${advocate.firstName} ${advocate.lastName} ${advocate.city} ${advocate.degree} ${advocate.yearsOfExperience} ${advocate.specialties.join(' ')}`.toLowerCase();
 
@@ -43,6 +50,30 @@ export async function GET(request: Request) {
         advocate.yearsOfExperience.toString().includes(searchTerm)
       );
     });
+  }
+
+  // City filter
+  if (city) {
+    filteredData = filteredData.filter(advocate => advocate.city === city);
+  }
+
+  // Degree filter
+  if (degree) {
+    filteredData = filteredData.filter(advocate => advocate.degree === degree);
+  }
+
+  // Experience range filter
+  if (experienceMin > 0 || experienceMax < 999) {
+    filteredData = filteredData.filter(advocate => 
+      advocate.yearsOfExperience >= experienceMin && advocate.yearsOfExperience <= experienceMax
+    );
+  }
+
+  // Specialties filter
+  if (specialties.length > 0) {
+    filteredData = filteredData.filter(advocate => 
+      specialties.some(specialty => advocate.specialties.includes(specialty))
+    );
   }
 
   // Apply pagination
