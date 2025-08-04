@@ -50,6 +50,11 @@
      - Database searchText field for optimized queries
      - All keywords must match for multi-word searches
      - Backward compatible with single keyword searches
+   - **Advanced filter dropdowns** ✅ (Implemented in PR #6)
+     - Collapsible advanced filters section
+     - Location, degree, experience, and specialties dropdowns
+     - Multi-select specialties with active indicators
+     - Clean interface with optional advanced features
 
 3. **API Improvements**
    - Add caching with Redis
