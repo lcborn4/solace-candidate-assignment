@@ -33,6 +33,7 @@ export default function Home() {
 
   // Dropdown state
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [expandedSpecialties, setExpandedSpecialties] = useState<Set<number>>(new Set());
 
   // Handle click outside dropdowns
   useEffect(() => {
@@ -48,6 +49,18 @@ export default function Home() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const toggleSpecialties = (advocateId: number) => {
+    setExpandedSpecialties(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(advocateId)) {
+        newSet.delete(advocateId);
+      } else {
+        newSet.add(advocateId);
+      }
+      return newSet;
+    });
+  };
 
   const fetchFilterOptions = useCallback(async () => {
     try {
@@ -464,7 +477,10 @@ export default function Home() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
-                            {advocate.specialties.slice(0, 3).map((specialty, specialtyIndex) => (
+                            {(expandedSpecialties.has(advocate.id || index) 
+                              ? advocate.specialties 
+                              : advocate.specialties.slice(0, 3)
+                            ).map((specialty, specialtyIndex) => (
                               <span
                                 key={specialtyIndex}
                                 className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
@@ -472,10 +488,21 @@ export default function Home() {
                                 {specialty}
                               </span>
                             ))}
-                            {advocate.specialties.length > 3 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                            {advocate.specialties.length > 3 && !expandedSpecialties.has(advocate.id || index) && (
+                              <button
+                                onClick={() => toggleSpecialties(advocate.id || index)}
+                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
+                              >
                                 +{advocate.specialties.length - 3} more
-                              </span>
+                              </button>
+                            )}
+                            {expandedSpecialties.has(advocate.id || index) && (
+                              <button
+                                onClick={() => toggleSpecialties(advocate.id || index)}
+                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
+                              >
+                                Show less
+                              </button>
                             )}
                           </div>
                         </td>
