@@ -7,6 +7,7 @@ export interface Advocate {
     specialties: string[];
     yearsOfExperience: number;
     phoneNumber: number;
+    searchText: string;
     createdAt: string;
 }
 
