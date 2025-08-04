@@ -21,16 +21,16 @@ export async function GET(request: Request) {
   if (searchTerm) {
     const searchLower = searchTerm.toLowerCase();
     const searchKeywords = searchLower.split(' ').filter(keyword => keyword.length > 0);
-    
+
     filteredData = data.filter((advocate) => {
       // Create a searchable text from all fields
       const searchableText = `${advocate.firstName} ${advocate.lastName} ${advocate.city} ${advocate.degree} ${advocate.yearsOfExperience} ${advocate.specialties.join(' ')}`.toLowerCase();
-      
+
       // If multiple keywords, check if ALL keywords are found
       if (searchKeywords.length > 1) {
         return searchKeywords.every(keyword => searchableText.includes(keyword));
       }
-      
+
       // Single keyword search - check all fields
       return (
         advocate.firstName.toLowerCase().includes(searchLower) ||
