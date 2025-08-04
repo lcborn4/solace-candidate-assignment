@@ -166,9 +166,33 @@ export default function Home() {
           >
             <div className="flex items-center">
               <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
-              <span className="ml-2 text-sm text-gray-500">
-                {filters.city || filters.degree || filters.experienceMin > 0 || filters.experienceMax < 999 || filters.specialties.length > 0 ? '(Active)' : ''}
-              </span>
+              {(filters.city || filters.degree || filters.experienceMin > 0 || filters.experienceMax < 999 || filters.specialties.length > 0) && (
+                <div className="ml-2 flex items-center space-x-1">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    Active
+                  </span>
+                  {filters.city && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {filters.city}
+                    </span>
+                  )}
+                  {filters.degree && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {filters.degree}
+                    </span>
+                  )}
+                  {(filters.experienceMin > 0 || filters.experienceMax < 999) && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      {filters.experienceMin}-{filters.experienceMax === 999 ? '∞' : filters.experienceMax} years
+                    </span>
+                  )}
+                  {filters.specialties.length > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                      {filters.specialties.length} specialty{filters.specialties.length !== 1 ? 'ies' : ''}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <svg
               className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${showAdvancedFilters ? 'rotate-180' : ''}`}
