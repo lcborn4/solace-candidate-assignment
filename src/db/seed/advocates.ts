@@ -46,6 +46,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 10,
     phoneNumber: 5551234567,
+    searchText: "John Doe New York MD 10",
   },
   {
     firstName: "Jane",
@@ -55,6 +56,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 8,
     phoneNumber: 5559876543,
+    searchText: "Jane Smith Los Angeles PhD 8",
   },
   {
     firstName: "Alice",
@@ -64,6 +66,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 5,
     phoneNumber: 5554567890,
+    searchText: "Alice Johnson Chicago MSW 5",
   },
   {
     firstName: "Michael",
@@ -73,6 +76,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 12,
     phoneNumber: 5556543210,
+    searchText: "Michael Brown Houston MD 12",
   },
   {
     firstName: "Emily",
@@ -82,6 +86,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 7,
     phoneNumber: 5553210987,
+    searchText: "Emily Davis Phoenix PhD 7",
   },
   {
     firstName: "Chris",
@@ -91,6 +96,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 9,
     phoneNumber: 5557890123,
+    searchText: "Chris Martinez Philadelphia MSW 9",
   },
   {
     firstName: "Jessica",
@@ -100,6 +106,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 11,
     phoneNumber: 5554561234,
+    searchText: "Jessica Taylor San Antonio MD 11",
   },
   {
     firstName: "David",
@@ -109,6 +116,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 6,
     phoneNumber: 5557896543,
+    searchText: "David Harris San Diego PhD 6",
   },
   {
     firstName: "Laura",
@@ -118,6 +126,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 4,
     phoneNumber: 5550123456,
+    searchText: "Laura Clark Dallas MSW 4",
   },
   {
     firstName: "Daniel",
@@ -127,6 +136,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 13,
     phoneNumber: 5553217654,
+    searchText: "Daniel Lewis San Jose MD 13",
   },
   {
     firstName: "Sarah",
@@ -136,6 +146,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 10,
     phoneNumber: 5551238765,
+    searchText: "Sarah Lee Austin PhD 10",
   },
   {
     firstName: "James",
@@ -145,6 +156,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 5,
     phoneNumber: 5556540987,
+    searchText: "James King Jacksonville MSW 5",
   },
   {
     firstName: "Megan",
@@ -154,6 +166,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 14,
     phoneNumber: 5559873456,
+    searchText: "Megan Green San Francisco MD 14",
   },
   {
     firstName: "Joshua",
@@ -163,6 +176,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 9,
     phoneNumber: 5556781234,
+    searchText: "Joshua Walker Columbus PhD 9",
   },
   {
     firstName: "Amanda",
@@ -172,6 +186,7 @@ const advocateData = [
     specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 3,
     phoneNumber: 5559872345,
+    searchText: "Amanda Hall Fort Worth MSW 3",
   },
 ];
 
