@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Advocate, AdvocatesResponse, FilterOptions, FilterState } from "../types/advocate";
+import { Advocate, AdvocatesResponse, FilterOptions, FilterState, FilterChangeHandler } from "../types/advocate";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
@@ -118,7 +118,7 @@ export default function Home() {
     setFilters(prev => ({ ...prev, search: e.target.value }));
   };
 
-  const handleFilterChange = (key: keyof FilterState, value: any) => {
+  const handleFilterChange: FilterChangeHandler = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -345,24 +345,24 @@ export default function Home() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* City Filter */}
-                <CustomDropdown
-                  label="Location"
-                  value={filters.city}
-                  options={filterOptions.cities}
-                  onChange={(value) => handleFilterChange('city', value)}
-                  placeholder="All Locations"
-                  multiple={true}
-                />
+                                 <CustomDropdown
+                   label="Location"
+                   value={filters.city}
+                   options={filterOptions.cities}
+                   onChange={(value) => handleFilterChange('city', value as string[])}
+                   placeholder="All Locations"
+                   multiple={true}
+                 />
 
                 {/* Degree Filter */}
-                <CustomDropdown
-                  label="Degree Type"
-                  value={filters.degree}
-                  options={filterOptions.degrees}
-                  onChange={(value) => handleFilterChange('degree', value)}
-                  placeholder="All Degrees"
-                  multiple={true}
-                />
+                                 <CustomDropdown
+                   label="Degree Type"
+                   value={filters.degree}
+                   options={filterOptions.degrees}
+                   onChange={(value) => handleFilterChange('degree', value as string[])}
+                   placeholder="All Degrees"
+                   multiple={true}
+                 />
 
                 {/* Experience Range Filter */}
                 <CustomDropdown
@@ -392,14 +392,14 @@ export default function Home() {
                 />
 
                 {/* Specialties Filter */}
-                <CustomDropdown
-                  label="Specialties"
-                  value={filters.specialties}
-                  options={filterOptions.specialties}
-                  onChange={(value) => handleFilterChange('specialties', value)}
-                  placeholder="Select specialties"
-                  multiple={true}
-                />
+                                 <CustomDropdown
+                   label="Specialties"
+                   value={filters.specialties}
+                   options={filterOptions.specialties}
+                   onChange={(value) => handleFilterChange('specialties', value as string[])}
+                   placeholder="Select specialties"
+                   multiple={true}
+                 />
               </div>
             </div>
           )}
